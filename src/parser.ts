@@ -2,6 +2,7 @@ import { Reply, empty, consumed } from '@/reply.js';
 
 export type Parser<T> = (input: string) => Reply<T>;
 
+/* Analogous to Haskell's 'pure' or 'return' for a parser monad. */
 export function pure<T>(t: T): Parser<T> {
   return (input) => ({
     type: 'epsilon',
@@ -10,6 +11,7 @@ export function pure<T>(t: T): Parser<T> {
   });
 }
 
+/* Analogous to Haskell's '>>=' for a parser monad. */
 export function bind<T1, T2>(pa: Parser<T1>, pb: (t: T1) => Parser<T2>): Parser<T2> {
   return (input) => {
     const a = pa(input);
@@ -20,8 +22,19 @@ export function bind<T1, T2>(pa: Parser<T1>, pb: (t: T1) => Parser<T2>): Parser<
   };
 }
 
+/* Analogous to Haskell's '>>' for a parser monad. */
 export function then<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T2> {
   return bind(pa, (_) => pb);
+}
+
+/* Analogous to Haskell's '<*' for a parser applicative functor. */
+export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
+  return bind(pa, (a) => then(pb, pure(a)));
+}
+
+/* Analogous to Haskell's 'fmap' for a parser functor. */
+export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
+  return bind(pa, (a) => pure(f(a)));
 }
 
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
@@ -130,16 +143,6 @@ export function skip<T>(p: Parser<T>): Parser<void> {
   return choice(skipSome(p), pure(void 0));
 }
 
-/* Analogous to Haskell's '<*' for parser monads. */
-export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
-  return bind(pa, (a) => then(pb, pure(a)));
-}
-
 export function between<T1, T2, T3>(open: Parser<T1>, close: Parser<T2>, pa: Parser<T3>): Parser<T3> {
   return then(open, bind(pa, (a) => then(close, pure(a))));
-}
-
-/* Analogous to Haskell's 'fmap' function from the Functor typeclass. */
-export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
-  return bind(pa, (a) => pure(f(a)));
 }
