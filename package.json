@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json && tsc-alias -fp tsconfig.build.json",
-    "test": "tsc -p tsconfig.json && tsc-alias -fp tsconfig.json && node dist/test/index.js",
+    "test": "tsc -p tsconfig.json && tsc-alias -fp tsconfig.json && node ./dist/test/index.js",
     "clean": "rm -rf ./dist"
   },
   "keywords": [],
