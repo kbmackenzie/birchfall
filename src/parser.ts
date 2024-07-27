@@ -63,6 +63,10 @@ export function choice<T>(pa: Parser<T>, pb: Parser<T>): Parser<T> {
   };
 }
 
+export function choices<T>(...ps: Parser<T>[]): Parser<T> {
+  return ps.reduce((a, b) => choice(a, b));
+}
+
 function some<T>(p: Parser<T>): Parser<T[]> {
   /* An iterative implementation preferred over a recursive one like Haskell's.
    * Linked lists and recursion is expensive in JS. */
