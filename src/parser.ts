@@ -27,7 +27,7 @@ export function then<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T2> {
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
   return (input) => {
     const head = input[0];
-    if (!head || !predicate(head)) {
+    if (head === undefined || !predicate(head)) {
       return { type: 'fail' };
     }
     return {
@@ -58,7 +58,7 @@ export function word(a: string): Parser<string> {
 export function choice<T>(pa: Parser<T>, pb: Parser<T>): Parser<T> {
   return (input) => {
     const a = pa(input);
-    if (consumed(a)) return a;
+    if (consumed(a) || a.type === 'epsilon') return a;
     if (a.type === 'fail') return pb(input);
 
     const b = pb(input);
@@ -76,9 +76,8 @@ function some<T>(p: Parser<T>): Parser<T[]> {
    * Linked lists and recursion is expensive in JS. */
   return (input) => {
     let a: Reply<T> = p(input);
-    if (a.type !== 'ok') {
-      if (a.type === 'error') return a;
-      return { type: 'fail' };
+    if (a.type !== 'ok' && a.type !== 'epsilon') {
+      return a;
     }
     const output: T[] = [];
 
