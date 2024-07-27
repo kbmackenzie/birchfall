@@ -1,5 +1,5 @@
 import { test, logTest } from './parser-test';
-import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar } from '@/parser'
+import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar, skip } from '@/parser'
 
 { 
   const input  = 'hellohellohellohelloworldworld';
@@ -18,7 +18,6 @@ import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar } 
 
 { 
   const input  = 'do re and me';
-
   const note = choices(
     word('do'),
     word('re'),
@@ -28,10 +27,12 @@ import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar } 
     word('la'),
     word('si'),
   );
-  const spaces = many(char(' '));
   const noteParser = bind(
     note,
-    (n) => then(spaces, pure(n))
+    (n) => then(
+      skip(char(' ')),
+      pure(n)
+    )
   );
   const parser: Parser<[string[], string]> = bind(
     many(noteParser),
@@ -40,7 +41,6 @@ import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar } 
       (rest) => pure([ns, rest.join('')])
     )
   );
-
   const result = test(
     parser(input),
     result => result[0].length === 2
