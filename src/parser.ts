@@ -100,3 +100,7 @@ function some<T>(p: Parser<T>): Parser<T[]> {
 export function many<T>(p: Parser<T>): Parser<T[]> {
   return choice(some(p), pure([]));
 }
+
+export function anyChar(): Parser<string> {
+  return satisfy(_ => true);
+}
