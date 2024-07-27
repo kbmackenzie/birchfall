@@ -1,0 +1,22 @@
+{
+  "name": "mothwing",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc-alias -fp tsconfig.build.json",
+    "test": "tsc -p tsconfig.json && tsc-alias -fp tsconfig.json && node dist/test/index.js",
+    "clean": "rm -rf ./dist"
+  },
+  "keywords": [],
+  "author": "kbmackenzie <kelly.a.betty@gmail.com>",
+  "license": "GPL-3.0-only",
+  "description": "",
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "tsc-alias": "^1.8.10"
+  }
+}
