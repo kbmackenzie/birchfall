@@ -129,3 +129,8 @@ export function skipSome<T>(p: Parser<T>): Parser<void> {
 export function skip<T>(p: Parser<T>): Parser<void> {
   return choice(skipSome(p), pure(void 0));
 }
+
+/* Analogous to Haskell's '<*' for parser monads. */
+export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
+  return bind(pa, (a) => then(pb, pure(a)));
+}
