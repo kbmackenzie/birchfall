@@ -1,2 +1,2 @@
-export * from '@/parser.js';
-export * from '@/reply.js';
+export * from '@/parser';
+export * from '@/reply';

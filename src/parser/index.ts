@@ -1,4 +1,4 @@
-import { Reply, empty, consumed } from '@/reply.js';
+import { Reply, empty, consumed } from '@/reply';
 
 export type Parser<T> = (input: string) => Reply<T>;
 
