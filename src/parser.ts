@@ -82,7 +82,7 @@ function some<T>(p: Parser<T>): Parser<T[]> {
     }
     const output: T[] = [];
 
-    while (a.type === 'ok') {
+    while (a.type === 'ok' || a.type === 'epsilon') {
       output.push(a.value);
       const x = p(a.input);
       if (x.type === 'fail') break;
