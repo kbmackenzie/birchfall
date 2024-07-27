@@ -10,7 +10,7 @@ export function pure<T>(t: T): Parser<T> {
   });
 }
 
-export function bind<T>(pa: Parser<T>, pb: (t: T) => Parser<T>): Parser<T> {
+export function bind<T1, T2>(pa: Parser<T1>, pb: (t: T1) => Parser<T2>): Parser<T2> {
   return (input) => {
     const a = pa(input);
     if (a.type === 'epsilon' || a.type === 'ok') {
@@ -18,6 +18,10 @@ export function bind<T>(pa: Parser<T>, pb: (t: T) => Parser<T>): Parser<T> {
     }
     return a;
   };
+}
+
+export function then<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T2> {
+  return bind(pa, (_) => pb);
 }
 
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
