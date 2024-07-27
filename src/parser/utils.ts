@@ -1,4 +1,4 @@
-import { Parser, bind, char, fmap, many, pure, satisfy, then } from '@/parser';
+import { Parser, bind, char, choice, fmap, many, pure, satisfy, then, word } from '@/parser';
 
 /* --- Numbers: --- */
 
@@ -23,4 +23,17 @@ export const float: Parser<number> = fmap(
       )
     )
   )
+);
+
+/* --- Booleans: --- */
+
+export const boolean: Parser<boolean> = choice(
+  then(
+    word('true'),
+    pure(true)
+  ),
+  then(
+    word('false'),
+    pure(false)
+  ),
 );
