@@ -138,3 +138,8 @@ export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
 export function between<T1, T2, T3>(open: Parser<T1>, close: Parser<T2>, pa: Parser<T3>): Parser<T3> {
   return then(open, bind(pa, (a) => then(close, pure(a))));
 }
+
+/* Analogous to Haskell's 'fmap' function from the Functor typeclass. */
+export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
+  return bind(pa, (a) => pure(f(a)));
+}
