@@ -18,7 +18,7 @@ export const float: Parser<number> = fmap(
     (whole) => then(
       char('.'),
       fmap(
-        (fractinal) => `${whole}.${fractinal}`,
+        (fractional) => `${whole}.${fractional}`,
         many(satisfy(isDigit)),
       )
     )
