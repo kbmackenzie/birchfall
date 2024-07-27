@@ -19,7 +19,7 @@ export class Test<T> {
   run(): TestOutput<T> {
     const reply = this.parser(this.input);
 
-    if (reply.type === 'ok') {
+    if (reply.type === 'ok' || reply.type === 'epsilon') {
       const result = !this.predicate || this.predicate(reply.value);
       return {
         type:  result ? 'success' : 'fail',

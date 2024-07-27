@@ -6,7 +6,7 @@ export type TestOutput<T> =
   | { type: 'error'  , message: string };
 
 export function test<T>(reply: Reply<T>, predicate?: (t: T) => boolean): TestOutput<T> {
-  if (reply.type === 'ok') {
+  if (reply.type === 'ok' || reply.type === 'epsilon') {
     const result = !predicate || predicate(reply.value);
     return {
       type:  result ? 'success' : 'fail',
