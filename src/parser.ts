@@ -104,3 +104,28 @@ export function many<T>(p: Parser<T>): Parser<T[]> {
 export function anyChar(): Parser<string> {
   return satisfy(_ => true);
 }
+
+export function skipSome<T>(p: Parser<T>): Parser<void> {
+  return (input) => {
+    let a: Reply<T> = p(input);
+    if (a.type !== 'ok' && a.type !== 'epsilon') {
+      return a;
+    }
+    while (a.type === 'ok' || a.type === 'epsilon') {
+      const x = p(a.input);
+      if (x.type === 'fail') break;
+      a = x;
+    } 
+    if (a.type === 'error') return a;
+
+    return {
+      type: 'epsilon',
+      value: void 0,
+      input: a.input,
+    };
+  }
+}
+
+export function skip<T>(p: Parser<T>): Parser<void> {
+  return choice(skipSome(p), pure(void 0));
+}
