@@ -45,6 +45,11 @@ export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
   return bind(pa, (a) => then(pb, pure(a)));
 }
 
+/* Function composition, i.e. (f . g) */
+export function compose<T1, T2, T3>(f: (t: T1) => T2, g: (t: T2) => T3): (t: T1) => T3 {
+  return (t: T1) => g(f(t));
+}
+
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
   return (input) => {
     const head = input[0];
