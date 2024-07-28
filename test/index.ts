@@ -1,5 +1,24 @@
 import { test, logTest } from './parser-test';
 import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar, skip } from '@/parser'
+import { float } from '@/parser/utils';
+
+{
+  const input = '3.14';
+  const result = test(
+    float(input),
+    result => result === 3.14
+  );
+  logTest(result);
+}
+
+{
+  const input = '314';
+  const result = test(
+    float(input),
+    result => result === 314
+  );
+  logTest(result);
+}
 
 { 
   const input  = 'hellohellohellohelloworldworld';
