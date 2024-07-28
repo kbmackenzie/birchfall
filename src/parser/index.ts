@@ -27,8 +27,9 @@ export function then<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T2> {
   return bind(pa, (_) => pb);
 }
 
-/* Analogous to Haskell's 'fmap' function from the Functor typeclass. */
-export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
+/* Analogous to Haskell's 'fmap' function from the Functor typeclass.
+ * More specifically, (flip . fmap), as the argument order is flipped. */
+export function fmap<T1, T2>(pa: Parser<T1>, f: (t: T1) => T2): Parser<T2> {
   return bind(pa, (a) => pure(f(a)));
 }
 
@@ -176,13 +177,13 @@ export function lazy<T>(p: () => Parser<T>): Parser<T> {
 }
 
 export function void_<T>(p: Parser<T>): Parser<void> {
-  return fmap((_) => void 0, p);
+  return fmap(p, (_) => void 0);
 }
 
 export function sepBy1<T1, T2>(p: Parser<T1>, sep: Parser<T2>): Parser<T1[]> {
   return bind(p, (a) => fmap(
-    (as: T1[]) => [a, ...as],
-    many(then(sep, p))
+    many(then(sep, p)),
+    (as) => [a, ...as],
   ));
 }
 

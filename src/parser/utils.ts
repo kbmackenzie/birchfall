@@ -6,25 +6,25 @@ function isDigit(char: string): boolean {
 }
 
 export const integer: Parser<number> = fmap(
+  some(satisfy(isDigit)),
   (digits: string[]) => Number(digits.join('')),
-  some(satisfy(isDigit))
 );
 
 export const float: Parser<number> = fmap(
-  (digits: string) => Number(digits),
   bind(
     some(satisfy(isDigit)),
     (whole) => option(
       then(
         char('.'),
         fmap(
-          (fractional: string[]) => `${whole.join('')}.${fractional.join('')}`,
           some(satisfy(isDigit)),
+          (fractional: string[]) => `${whole.join('')}.${fractional.join('')}`,
         )
       ),
       whole.join('')
     )
-  )
+  ),
+  (digits: string) => Number(digits),
 );
 
 /* --- Booleans: --- */
