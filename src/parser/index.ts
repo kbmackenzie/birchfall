@@ -151,3 +151,10 @@ export function skip<T>(p: Parser<T>): Parser<void> {
 export function between<T1, T2, T3>(open: Parser<T1>, close: Parser<T2>, pa: Parser<T3>): Parser<T3> {
   return then(open, bind(pa, (a) => then(close, pure(a))));
 }
+
+export function error(message: string): Parser<void> {
+  return (_) => ({
+    type: 'error',
+    message: message,
+  });
+}
