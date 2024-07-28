@@ -1,59 +1,72 @@
-import { between, bind, char, choice, choices, compose, fmap, lazy, option, Parser, pure, some, then } from '@/parser';
+import { between, bind, char, choice, compose, fmap, lazy, Parser, pure, some, then } from '@/parser';
 import { float, lexeme } from '@/parser/utils';
 
 export type Operator = '+' | '-' | '*' | '/';
 export type Expr =
-  | { type: 'operation', op: Operator, a: Expr, b: Expr }
+  | { type: 'operator', operator: Operator, left: Expr, right: Expr }
   | { type: 'primitive', value: number };
 
-export function calculator(): Parser<Expr> {
+export type OperatorTable = Operator[][];
+
+/* do
+ *  symbol op
+ *  b <- operand
+ *  return $ \a -> { type: op, a: a, b: b }
+ */
+
+export function expression(primitive: Parser<Expr>, operatorTable: OperatorTable): Parser<Expr> {
   const symbol = compose(char, lexeme);
-  const number = fmap(
-    (n: number): Expr => ({ type: 'primitive', value: n }),
-    lexeme(float)
-  );
+  let term: Parser<Expr>;
 
-  const operationSet = (operators: Operator[], operand: Parser<Expr>) => {
-    const operation = (op: Operator) => then(
-      symbol(op),
-      pure((a: Expr, b: Expr): Expr =>
-        ({ type: 'operation', op: op, a: a, b: b }))
-    );
-    const rexpr = bind(
-      choices(...operators.map((operation))),
-      (f) => bind(operand, (b) => pure((a: Expr) => f(a, b))),
-    );
-    const rhs   = bind(
-      some(rexpr),
-      (fs) => pure(fs.reduce((f, g) => (a) => g(f(a))))
-    );
-    return bind(
-      operand,
-      (a: Expr) => bind(
-        option(rhs, (x: Expr) => x),
-        (f) => pure(f(a)),
-      )
-    );
-  }
+  const expr: Parser<Expr> = lazy(() => operatorTable.reduce(
+    (operand: Parser<Expr>, operators: Operator[]) => {
+      const operatorParser = operators.map((operator) => then(
+        symbol(operator),
+        bind(operand, (b) => pure(
+          (a: Expr): Expr => ({
+            type: 'operator',
+            left: a,
+            right: b,
+            operator: operator,
+          }))
+        )
+      )).reduce(choice);
 
-  /* Forward declaration (due to function co-dependency). */
-  let sum:  Parser<Expr>,
-      prod: Parser<Expr>,
-      term: Parser<Expr>;
+      const operations = (a: Expr) => fmap(
+        some(operatorParser),
+        (ops) => ops.reduce((value, op) => op(value), a),
+      );
 
-  sum  = lazy(() => operationSet(['+', '-'], prod));
-  prod = lazy(() => operationSet(['*', '/'], term));
-  term = lazy(() => choice(
-    number,
-    between(symbol('('), symbol(')'), sum),
+      return bind(operand, (a) => choice(
+        operations(a),
+        pure(a)
+      ));
+    },
+    term,
   ));
 
-  return sum;
+  term = choice(
+    between(symbol('('), symbol(')'), expr),
+    primitive,
+  );
+  return expr;
+}
+
+export function calculator(): Parser<Expr> {
+  const number = fmap(
+    lexeme(float),
+    (n): Expr => ({ type: 'primitive', value: n }),
+  );
+  const operators: OperatorTable = [
+    ['*', '/'],
+    ['+', '-'],
+  ];
+  return expression(number, operators);
 }
 
 export function printExpr(expr: Expr): string {
   if (expr.type === 'primitive') return String(expr.value);
-  const a = printExpr(expr.a);
-  const b = printExpr(expr.b);
-  return `(${a} ${expr.op} ${b})`;
+  const a = printExpr(expr.left);
+  const b = printExpr(expr.right);
+  return `(${a} ${expr.operator} ${b})`;
 }
