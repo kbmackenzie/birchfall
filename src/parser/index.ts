@@ -89,6 +89,11 @@ export function choice<T>(pa: Parser<T>, pb: Parser<T>): Parser<T> {
 }
 
 export function choices<T>(...ps: Parser<T>[]): Parser<T> {
+  if (ps.length === 0) {
+    /* Let combinator fail gracefully with zero arguments.
+     * Avoid TypeError from .reduce(). */
+    return (_) => ({ type: 'fail' });
+  }
   return ps.reduce((a, b) => choice(a, b));
 }
 
