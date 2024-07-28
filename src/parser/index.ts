@@ -152,6 +152,12 @@ export function between<T1, T2, T3>(open: Parser<T1>, close: Parser<T2>, pa: Par
   return then(open, bind(pa, (a) => then(close, pure(a))));
 }
 
+export function option<T>(p: Parser<T>): Parser<T | void>;
+export function option<T>(p: Parser<T>, def: T): Parser<T>;
+export function option<T>(p: Parser<T>, def?: T): Parser<T | void> {
+  return choice(p, pure(def));
+}
+
 export function error(message: string): Parser<void> {
   return (_) => ({
     type: 'error',
