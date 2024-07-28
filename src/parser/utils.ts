@@ -1,4 +1,4 @@
-import { Parser, bind, char, choice, fmap, many, pure, satisfy, then, word } from '@/parser';
+import { Parser, bind, char, choice, fmap, many, pure, satisfy, skip, then, void_, word } from '@/parser';
 
 /* --- Numbers: --- */
 function isDigit(char: string): boolean {
@@ -35,3 +35,11 @@ export const boolean: Parser<boolean> = choice(
     pure(false)
   ),
 );
+
+
+/* -- Whitespace -- */
+function isWhitespace(char: string): boolean {
+  return /^\s$/.test(char);
+}
+export const whitespace: Parser<void> = skip(satisfy(isWhitespace));
+export const newline:    Parser<void> = void_(char('\n'));
