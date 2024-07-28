@@ -158,3 +158,19 @@ export function error(message: string): Parser<void> {
     message: message,
   });
 }
+
+export function attempt<T>(p: Parser<T>): Parser<T> {
+  return (input) => {
+    const a = p(input);
+    if (a.type === 'error') return { type: 'fail' };
+    return a;
+  };
+}
+
+export function tryCatch<T>(p: Parser<T>, catcher: (message?: string) => Parser<T>): Parser<T> {
+  return (input) => {
+    const a = p(input);
+    if (a.type === 'error') return catcher(a.message)(input);
+    return a;
+  };
+}
