@@ -172,7 +172,7 @@ export function option<T>(p: Parser<T>, def?: T): Parser<T | void> {
 }
 
 export function lazy<T>(p: () => Parser<T>): Parser<T> {
-  return p();
+  return (input: string) => p()(input);
 }
 
 export function void_<T>(p: Parser<T>): Parser<void> {
