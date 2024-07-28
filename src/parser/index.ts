@@ -37,6 +37,11 @@ export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
   return bind(pa, (a) => pure(f(a)));
 }
 
+/* Analogous to Haskell's '<*>' function from the Applicative typeclass. */
+export function apply<T1, T2>(pf: Parser<(t: T1) => T2>, pa: Parser<T1>): Parser<T2> {
+  return bind(pf, (f) => bind(pa, (a) => pure(f(a))));
+}
+
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
   return (input) => {
     const head = input[0];
