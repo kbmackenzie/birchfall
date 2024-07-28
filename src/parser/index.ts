@@ -2,7 +2,7 @@ import { Reply, isEmpty, isConsumed } from '@/reply';
 
 export type Parser<T> = (input: string) => Reply<T>;
 
-/* Analogous to Haskell's 'pure' or 'return' for a parser monad. */
+/* Analogous to Haskell's 'pure' function from the Applicative typeclass. */
 export function pure<T>(t: T): Parser<T> {
   return (input) => ({
     type: 'epsilon',
@@ -11,7 +11,7 @@ export function pure<T>(t: T): Parser<T> {
   });
 }
 
-/* Analogous to Haskell's '>>=' for a parser monad. */
+/* Analogous to Haskell's '>>=' function from the Monad typeclass. */
 export function bind<T1, T2>(pa: Parser<T1>, pb: (t: T1) => Parser<T2>): Parser<T2> {
   return (input) => {
     const a = pa(input);
@@ -22,17 +22,17 @@ export function bind<T1, T2>(pa: Parser<T1>, pb: (t: T1) => Parser<T2>): Parser<
   };
 }
 
-/* Analogous to Haskell's '>>' for a parser monad. */
+/* Analogous to Haskell's '>>' function from the Monad typeclass. */
 export function then<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T2> {
   return bind(pa, (_) => pb);
 }
 
-/* Analogous to Haskell's '<*' for a parser applicative functor. */
+/* Analogous to Haskell's '<*' function from the Applicative typeclass. */
 export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
   return bind(pa, (a) => then(pb, pure(a)));
 }
 
-/* Analogous to Haskell's 'fmap' for a parser functor. */
+/* Analogous to Haskell's 'fmap' function from the Functor typeclass. */
 export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
   return bind(pa, (a) => pure(f(a)));
 }
