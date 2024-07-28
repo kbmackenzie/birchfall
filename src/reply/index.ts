@@ -2,7 +2,7 @@ export type Reply<T> =
   | { type: 'ok'     , value: T, input: string }
   | { type: 'epsilon', value: T, input: string }
   | { type: 'fail'  }
-  | { type: 'error' }
+  | { type: 'error'  , message?: string }
 
 export function isEmpty<T>(r: Reply<T>): boolean {
   return r.type === 'epsilon' || r.type === 'fail';
