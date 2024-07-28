@@ -1,6 +1,14 @@
 import { test, logTest } from './parser-test';
+import { Reply } from '@/reply';
 import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar, skip } from '@/parser'
 import { float } from '@/parser/utils';
+import { calculator, Expr, printExpr } from './parser/calculator';
+
+{
+  const input  = '1 + (2 + 3) * (4 + 2) + 3 / 4'
+  const result = test(calculator()(input));
+  logTest(result, printExpr);
+}
 
 {
   const input = '3.14';
