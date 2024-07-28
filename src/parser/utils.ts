@@ -1,4 +1,4 @@
-import { Parser, after, bind, char, choice, fmap, many, pure, satisfy, skip, then, void_, word } from '@/parser';
+import { Parser, after, bind, char, choice, fmap, many, some, option, pure, satisfy, skip, then, void_, word } from '@/parser';
 
 /* --- Numbers: --- */
 function isDigit(char: string): boolean {
@@ -7,19 +7,22 @@ function isDigit(char: string): boolean {
 
 export const integer: Parser<number> = fmap(
   (digits: string[]) => Number(digits.join('')),
-  many(satisfy(isDigit))
+  some(satisfy(isDigit))
 );
 
 export const float: Parser<number> = fmap(
   (digits: string) => Number(digits),
   bind(
-    many(satisfy(isDigit)),
-    (whole) => then(
-      char('.'),
-      fmap(
-        (fractional) => `${whole}.${fractional}`,
-        many(satisfy(isDigit)),
-      )
+    some(satisfy(isDigit)),
+    (whole) => option(
+      then(
+        char('.'),
+        fmap(
+          (fractional: string[]) => `${whole.join('')}.${fractional.join('')}`,
+          some(satisfy(isDigit)),
+        )
+      ),
+      whole.join('')
     )
   )
 );
