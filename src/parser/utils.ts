@@ -1,9 +1,8 @@
 import { Parser, bind, char, choice, fmap, many, pure, satisfy, then, word } from '@/parser';
 
 /* --- Numbers: --- */
-
 function isDigit(char: string): boolean {
-  return /[0-9]/.test(char);
+  return /^[0-9]$/.test(char);
 }
 
 export const integer: Parser<number> = fmap(
@@ -26,7 +25,6 @@ export const float: Parser<number> = fmap(
 );
 
 /* --- Booleans: --- */
-
 export const boolean: Parser<boolean> = choice(
   then(
     word('true'),
