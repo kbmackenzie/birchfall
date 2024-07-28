@@ -161,6 +161,10 @@ export function option<T>(p: Parser<T>, def?: T): Parser<T | void> {
   return choice(p, pure(def));
 }
 
+export function void_<T>(p: Parser<T>): Parser<void> {
+  return fmap((_) => void 0, p);
+}
+
 export function error(message: string): Parser<void> {
   return (_) => ({
     type: 'error',
