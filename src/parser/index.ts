@@ -90,8 +90,8 @@ export function choices<T>(...ps: Parser<T>[]): Parser<T> {
 }
 
 function some<T>(p: Parser<T>): Parser<T[]> {
-  /* An iterative implementation preferred over a recursive one like Haskell's.
-   * Linked lists and recursion is expensive in JS. */
+  /* An iterative implementation preferred over a recursive one like in Haskell.
+   * Persistent data structures and recursion is expensive in JS. */
   return (input) => {
     let a: Reply<T> = p(input);
     if (a.type !== 'ok' && a.type !== 'epsilon') {
