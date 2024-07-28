@@ -1,4 +1,4 @@
-import { Parser, bind, char, choice, fmap, many, pure, satisfy, skip, then, void_, word } from '@/parser';
+import { Parser, after, bind, char, choice, fmap, many, pure, satisfy, skip, then, void_, word } from '@/parser';
 
 /* --- Numbers: --- */
 function isDigit(char: string): boolean {
@@ -43,3 +43,8 @@ function isWhitespace(char: string): boolean {
 }
 export const whitespace: Parser<void> = skip(satisfy(isWhitespace));
 export const newline:    Parser<void> = void_(char('\n'));
+
+/* -- Miscellaneous -- */
+export function lexeme<T>(p: Parser<T>): Parser<T> {
+  return after(p, whitespace);
+}
