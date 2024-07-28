@@ -27,11 +27,6 @@ export function then<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T2> {
   return bind(pa, (_) => pb);
 }
 
-/* Analogous to Haskell's '<*' function from the Applicative typeclass. */
-export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
-  return bind(pa, (a) => then(pb, pure(a)));
-}
-
 /* Analogous to Haskell's 'fmap' function from the Functor typeclass. */
 export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
   return bind(pa, (a) => pure(f(a)));
@@ -40,6 +35,14 @@ export function fmap<T1, T2>(f: (t: T1) => T2, pa: Parser<T1>): Parser<T2> {
 /* Analogous to Haskell's '<*>' function from the Applicative typeclass. */
 export function apply<T1, T2>(pf: Parser<(t: T1) => T2>, pa: Parser<T1>): Parser<T2> {
   return bind(pf, (f) => bind(pa, (a) => pure(f(a))));
+}
+
+/* Analogous to Haskell's '<*' function from Control.Applicative. */
+export function after<T1, T2>(pa: Parser<T1>, pb: Parser<T2>): Parser<T1> {
+  /* It could also be defined in terms of 'apply', like this:
+   *    apply(fmap((a) => (_) => a, pa), pb)
+   * However, I believe the definition below is nicer and more performant. */
+  return bind(pa, (a) => then(pb, pure(a)));
 }
 
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
