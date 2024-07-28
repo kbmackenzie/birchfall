@@ -170,6 +170,17 @@ export function void_<T>(p: Parser<T>): Parser<void> {
   return fmap((_) => void 0, p);
 }
 
+export function sepBy1<T1, T2>(p: Parser<T1>, sep: Parser<T2>): Parser<T1[]> {
+  return bind(p, (a) => fmap(
+    (as: T1[]) => [a, ...as],
+    many(then(sep, p))
+  ));
+}
+
+export function sepBy<T1, T2>(p: Parser<T1>, sep: Parser<T2>): Parser<T1[]> {
+  return choice(sepBy1(p, sep), pure([]));
+}
+
 export function error(message: string): Parser<void> {
   return (_) => ({
     type: 'error',
