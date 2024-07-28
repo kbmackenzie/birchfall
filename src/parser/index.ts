@@ -166,6 +166,10 @@ export function option<T>(p: Parser<T>, def?: T): Parser<T | void> {
   return choice(p, pure(def));
 }
 
+export function lazy<T>(p: () => Parser<T>): Parser<T> {
+  return p();
+}
+
 export function void_<T>(p: Parser<T>): Parser<void> {
   return fmap((_) => void 0, p);
 }
