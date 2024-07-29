@@ -100,7 +100,7 @@ export function choices<T>(...ps: Parser<T>[]): Parser<T> {
      * Avoid TypeError from .reduce(). */
     return (_) => ({ type: 'fail' });
   }
-  return ps.reduce((a, b) => choice(a, b));
+  return [...ps].reverse().reduce((b, a) => choice(a, b));
 }
 
 export function some<T>(p: Parser<T>): Parser<T[]> {
