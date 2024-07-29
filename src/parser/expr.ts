@@ -1,42 +1,82 @@
-import { between, bind, char, choice, compose, fmap, lazy, Parser, pure, some } from '@/parser';
+import { between, bind, char, choice, choices, compose, fmap, lazy, option, Parser, pure, some } from '@/parser';
 import { lexeme } from '@/parser/utils';
 
-export type OperatorTable<T> = Parser<(a: T, b: T) => T>[][];
+export enum OperatorType {
+  Prefix  = 'prefix',
+  InfixL  = 'infixL',
+  InfixR  = 'infixR',
+  Postfix = 'postix',
+};
 
-/* do
- *  symbol op
- *  b <- operand
- *  return $ \a -> { type: op, a: a, b: b }
- */
+export type Operator<T> =
+  | { type: OperatorType.Prefix,  parse: Parser<(a: T) => T>       }
+  | { type: OperatorType.InfixL,  parse: Parser<(a: T, b: T) => T> }
+  | { type: OperatorType.InfixR,  parse: Parser<(a: T, b: T) => T> }
+  | { type: OperatorType.Postfix, parse: Parser<(a: T) => T>       };
 
-export function expression<T>(primitive: Parser<T>, operatorTable: OperatorTable<T>): Parser<T> {
-  const symbol = compose(char, lexeme);
+export type OperatorTable<T> = Operator<T>[][];
 
-  function operationParser(operand: Parser<T>, operators: Parser<(a: T, b: T) => T>[]): Parser<T> {
-    const operations = operators.map(operator => bind(
-      operator,
-      f => fmap(operand, b => (a: T) => f(a, b))
-    )).reduce(choice);
+export function parseInfixL<T>(
+  left: T,
+  term: Parser<T>,
+  operators: Parser<(a: T, b: T) => T>[]
+): Parser<T> {
+  const operation = choices(...operators);
+  return bind(operation, op => bind(term, right => {
+    const expr = op(left, right);
+    return choice(
+      parseInfixL(expr, term, operators),
+      pure(expr),
+    );
+  }));
+}
 
-    return bind(operand, a => choice(
-      fmap(
-        some(operations),
-        ops => ops.reduce((value, op) => op(value), a),
-      ),
-      pure(a),
+export function parseInfixR<T>(
+  left: T,
+  term: Parser<T>,
+  operators: Parser<(a: T, b: T) => T>[]
+): Parser<T> {
+  const operation = choices(...operators);
+
+  return bind(operation, op => {
+    const rhs = bind(term, value => choice(
+      parseInfixR(value, term, operators),
+      pure(value),
     ));
+    return fmap(rhs, right => op(left, right));
+  });
+}
+
+export function parseTerm<T>(
+  term: Parser<T>,
+  prefixes:  Parser<(a: T) => T>[],
+  postfixes: Parser<(a: T) => T>[],
+): Parser<T> {
+  const prefix  = option(choices(...prefixes), x => x);
+  const postfix = option(choices(...postfixes), x => x);
+  return bind(prefix, pre => bind(term, a => bind(postfix, post => pure(post(pre(a))))));
+}
+
+export type SplitOperators<T> = {
+  [OperatorType.Prefix]:  Parser<(a: T) => T>[],
+  [OperatorType.InfixL]:  Parser<(a: T, b: T) => T>[],
+  [OperatorType.InfixR]:  Parser<(a: T, b: T) => T>[],
+  [OperatorType.Postfix]: Parser<(a: T) => T>[],
+};
+
+export function splitOperators<T>(table: OperatorTable<T>): SplitOperators<T> {
+  const operators: SplitOperators<T> = {
+    [OperatorType.Prefix]:  [],
+    [OperatorType.InfixL]:  [],
+    [OperatorType.InfixR]:  [],
+    [OperatorType.Postfix]: [],
+  };
+  for (const row of table) {
+    for (const operator of row) {
+      /* The cast is necessary, because TypeScript doesn't understand that
+        * the enum key will always point to a compatible array. */
+      operators[operator.type].push(operator.parse as any);
+    }
   }
-
-  // Forward-declaration because of function co-dependency.
-  let term: Parser<T>;
-
-  const expr: Parser<T> = lazy(
-    () => operatorTable.reduce(operationParser, term)
-  );
-
-  term = choice(
-    between(symbol('('), symbol(')'), expr),
-    primitive,
-  );
-  return expr;
+  return operators;
 }
