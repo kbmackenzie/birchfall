@@ -73,9 +73,18 @@ export function splitOperators<T>(table: OperatorTable<T>): SplitOperators<T> {
   };
   for (const row of table) {
     for (const operator of row) {
-      /* The cast is necessary, because TypeScript doesn't understand that
-        * the enum key will always point to a compatible array. */
-      operators[operator.type].push(operator.parse as any);
+      /* This superflous switch-case is sadly necessary for this to typecheck.
+       * Because TypepScript is TypeScript. c': */
+      switch (operator.type) {
+        case OperatorType.Prefix:
+        case OperatorType.Postfix:
+          operators[operator.type].push(operator.parse);
+          break;
+        case OperatorType.InfixL:
+        case OperatorType.InfixR:
+          operators[operator.type].push(operator.parse);
+          break;
+      }
     }
   }
   return operators;
