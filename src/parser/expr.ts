@@ -1,11 +1,10 @@
-import { between, bind, char, choice, choices, compose, fmap, lazy, option, Parser, pure, some } from '@/parser';
-import { lexeme } from '@/parser/utils';
+import { bind, choice, choices, fmap, option, Parser, pure } from '@/parser';
 
 export enum OperatorType {
   Prefix  = 'prefix',
   InfixL  = 'infixL',
   InfixR  = 'infixR',
-  Postfix = 'postix',
+  Postfix = 'postfix',
 };
 
 export type Operator<T> =
@@ -16,7 +15,7 @@ export type Operator<T> =
 
 export type OperatorTable<T> = Operator<T>[][];
 
-export function parseInfixL<T>(
+function parseInfixL<T>(
   left: T,
   term: Parser<T>,
   operators: Parser<(a: T, b: T) => T>[]
@@ -31,13 +30,12 @@ export function parseInfixL<T>(
   }));
 }
 
-export function parseInfixR<T>(
+function parseInfixR<T>(
   left: T,
   term: Parser<T>,
   operators: Parser<(a: T, b: T) => T>[]
 ): Parser<T> {
   const operation = choices(...operators);
-
   return bind(operation, op => {
     const rhs = bind(term, value => choice(
       parseInfixR(value, term, operators),
@@ -57,35 +55,50 @@ export function parseTerm<T>(
   return bind(prefix, pre => bind(term, a => bind(postfix, post => pure(post(pre(a))))));
 }
 
-export type SplitOperators<T> = {
-  [OperatorType.Prefix]:  Parser<(a: T) => T>[],
-  [OperatorType.InfixL]:  Parser<(a: T, b: T) => T>[],
-  [OperatorType.InfixR]:  Parser<(a: T, b: T) => T>[],
-  [OperatorType.Postfix]: Parser<(a: T) => T>[],
+type SplitOperators<T> = {
+  prefix:  Parser<(a: T) => T>[],
+  infixL:  Parser<(a: T, b: T) => T>[],
+  infixR:  Parser<(a: T, b: T) => T>[],
+  postfix: Parser<(a: T) => T>[],
 };
 
-export function splitOperators<T>(table: OperatorTable<T>): SplitOperators<T> {
+function splitOperators<T>(operatorList: Operator<T>[]): SplitOperators<T> {
   const operators: SplitOperators<T> = {
-    [OperatorType.Prefix]:  [],
-    [OperatorType.InfixL]:  [],
-    [OperatorType.InfixR]:  [],
-    [OperatorType.Postfix]: [],
+    prefix:  [],
+    infixL:  [],
+    infixR:  [],
+    postfix: [],
   };
-  for (const row of table) {
-    for (const operator of row) {
-      /* This superflous switch-case is sadly necessary for this to typecheck.
-       * Because TypepScript is TypeScript. c': */
-      switch (operator.type) {
-        case OperatorType.Prefix:
-        case OperatorType.Postfix:
-          operators[operator.type].push(operator.parse);
-          break;
-        case OperatorType.InfixL:
-        case OperatorType.InfixR:
-          operators[operator.type].push(operator.parse);
-          break;
-      }
+  for (const operator of operatorList) {
+    /* This superflous switch-case is sadly necessary for this to typecheck.
+     * Because TypepScript is TypeScript. c': */
+    switch (operator.type) {
+      case OperatorType.Prefix:
+      case OperatorType.Postfix:
+        operators[operator.type].push(operator.parse);
+        break;
+      case OperatorType.InfixL:
+      case OperatorType.InfixR:
+        operators[operator.type].push(operator.parse);
+        break;
     }
   }
   return operators;
+}
+
+function parsePrecLevel<T>(primitive: Parser<T>, operatorList: Operator<T>[]) {
+  const operators = splitOperators(operatorList);
+  const term = parseTerm(primitive, operators.prefix, operators.postfix);
+  const infixR = (left: T) => parseInfixR(left, term, operators.infixR);
+  const infixL = (left: T) => parseInfixL(left, term, operators.infixR);
+
+  return bind(term, x => choices(
+    infixR(x),
+    infixL(x),
+    pure(x)
+  ));
+}
+
+export function makeExpressionParser<T>(primitive: Parser<T>, operatorTable: OperatorTable<T>): Parser<T> {
+  return operatorTable.reduce((acc, x) => parsePrecLevel(acc, x), primitive);
 }
