@@ -1,4 +1,4 @@
-import { Parser, after, bind, char, choice, fmap, many, some, option, pure, satisfy, skip, then, void_, word, skipSome } from '@/parser';
+import { Parser, after, bind, char, choice, fmap, some, option, pure, satisfy, then, void_, word, skipSome } from '@/parser';
 
 /* --- Numbers: --- */
 function isDigit(char: string): boolean {
