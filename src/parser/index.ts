@@ -227,6 +227,21 @@ export function tryCatch<T>(p: Parser<T>, catcher: (message?: string) => Parser<
   };
 }
 
-export function parse<T>(p: Parser<T>, input: string): Reply<T> {
-  return p(input, 0);
+export type ParserResult<T> =
+  | { type: 'success', value: T }
+  | { type: 'failure', index: number, message?: string }
+
+export function parse<T>(p: Parser<T>, input: string): ParserResult<T> {
+  const reply = p(input, 0);
+  if (reply.type === 'ok' || reply.type === 'epsilon') {
+    return {
+      type: 'success',
+      value: reply.value
+    };
+  }
+  return { 
+    type: 'failure',
+    index: reply.index,
+    message: reply.message
+  }
 }
