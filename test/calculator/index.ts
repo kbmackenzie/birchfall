@@ -46,11 +46,11 @@ export function calculator(): Parser<Expr> {
   return expr;
 }
 
-/* Print an expression and its subexpressions. */
-export function printExpr(expr: Expr): string {
+/* Stringify an expression and its subexpressions. */
+export function showExpr(expr: Expr): string {
   if (expr.type === 'primitive') return String(expr.value);
-  const a = printExpr(expr.left);
-  const b = printExpr(expr.right);
+  const a = showExpr(expr.left);
+  const b = showExpr(expr.right);
   return `(${a} ${expr.operator} ${b})`;
 }
 

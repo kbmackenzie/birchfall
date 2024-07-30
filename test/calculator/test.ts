@@ -1,5 +1,5 @@
 import { TestInput } from '@test/test-func';
-import { evaluate, Expr, printExpr } from '@test/calculator';
+import { evaluate, Expr, showExpr } from '@test/calculator';
 
 export const calculatorTests: TestInput<Expr>[] = [
   {
