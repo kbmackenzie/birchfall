@@ -10,7 +10,8 @@
     "rootDir": ".",
     "outDir": "./dist/",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@test/*": ["./test/*"]
     }
   },
   "include": ["./src/**/*.ts", "./test/**/*.ts"]
