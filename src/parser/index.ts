@@ -12,11 +12,19 @@ export function pure<T>(t: T): Parser<T> {
 }
 
 /* Analogous to Haskell's '>>=' function from the Monad typeclass. */
-export function bind<T1, T2>(pa: Parser<T1>, pb: (t: T1) => Parser<T2>): Parser<T2> {
+export function bind<T1, T2>(p: Parser<T1>, f: (t: T1) => Parser<T2>): Parser<T2> {
   return (input) => {
-    const a = pa(input);
-    if (a.type === 'epsilon' || a.type === 'ok') {
-      return pb(a.value)(a.input);
+    const a = p(input);
+    if (a.type === 'epsilon') {
+      return f(a.value)(a.input);
+    }
+    if (a.type === 'fail') return a;
+    if (a.type === 'ok') {
+      const b = f(a.value)(a.input);
+      if (b.type === 'fail' || b.type === 'error') {
+        return { type: 'error', message: b.message };
+      }
+      return { type: 'ok', input: b.input, value: b.value };
     }
     return a;
   };
@@ -85,8 +93,12 @@ export function word(a: string): Parser<string> {
 export function choice<T>(pa: Parser<T>, pb: Parser<T>): Parser<T> {
   return (input) => {
     const a = pa(input);
-    if (a.type != 'fail') return a;
-    return pb(input);
+    if (a.type === 'ok' || a.type === 'error') return a;
+    if (a.type === 'fail') return pb(input);
+    /* The lines below run when a.type === 'epsilon'. */
+    const b = pb(input);
+    if (b.type === 'epsilon' || b.type === 'fail') return a;
+    return b;
   };
 }
 
