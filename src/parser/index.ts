@@ -1,30 +1,34 @@
 import { Reply } from '@/reply';
 
-export type Parser<T> = (input: string) => Reply<T>;
+/* Two state arguments:
+ * - input: string -- The input string; *never changes*, lives through closures.
+ * - index: number -- A pointer to where in the string the parser is looking at. *Always changes.*
+ * This avoids space leaks. */
+export type Parser<T> = (input: string, i: number) => Reply<T>;
 
 /* Analogous to Haskell's 'pure' function from the Applicative typeclass. */
 export function pure<T>(t: T): Parser<T> {
-  return (input) => ({
+  return (_, i) => ({
     type: 'epsilon',
     value: t,
-    input: input,
+    index: i,
   });
 }
 
 /* Analogous to Haskell's '>>=' function from the Monad typeclass. */
 export function bind<T1, T2>(p: Parser<T1>, f: (t: T1) => Parser<T2>): Parser<T2> {
-  return (input) => {
-    const a = p(input);
+  return (input, i) => {
+    const a = p(input, i);
     if (a.type === 'epsilon') {
-      return f(a.value)(a.input);
+      return f(a.value)(input, a.index);
     }
     if (a.type === 'fail') return a;
     if (a.type === 'ok') {
-      const b = f(a.value)(a.input);
+      const b = f(a.value)(input, a.index);
       if (b.type === 'fail' || b.type === 'error') {
         return { type: 'error', message: b.message };
       }
-      return { type: 'ok', input: b.input, value: b.value };
+      return { type: 'ok', value: b.value, index: b.index };
     }
     return a;
   };
@@ -60,15 +64,15 @@ export function compose<T1, T2, T3>(f: (t: T1) => T2, g: (t: T2) => T3): (t: T1)
 }
 
 export function satisfy(predicate: (c: string) => boolean): Parser<string> {
-  return (input) => {
-    const head = input[0];
+  return (input, i) => {
+    const head = input[i];
     if (head === undefined || !predicate(head)) {
       return { type: 'fail' };
     }
     return {
       type: 'ok',
       value: head,
-      input: input.slice(1),
+      index: i + 1,
     };
   };
 }
@@ -78,25 +82,25 @@ export function char(c: string): Parser<string> {
 }
 
 export function word(a: string): Parser<string> {
-  return (input) => {
+  return (input, i) => {
     if (input.length < a.length) return { type: 'fail' };
-    const b = input.slice(0, a.length);
+    const b = input.slice(i, a.length);
     if (b !== a) return { type: 'fail' };
     return {
       type: 'ok',
       value: b,
-      input: input.slice(a.length),
+      index: i + a.length,
     };
   };
 }
 
 export function choice<T>(pa: Parser<T>, pb: Parser<T>): Parser<T> {
-  return (input) => {
-    const a = pa(input);
+  return (input, i) => {
+    const a = pa(input, i);
     if (a.type === 'ok' || a.type === 'error') return a;
-    if (a.type === 'fail') return pb(input);
+    if (a.type === 'fail') return pb(input, i);
     /* The lines below run when a.type === 'epsilon'. */
-    const b = pb(input);
+    const b = pb(input, i);
     if (b.type === 'epsilon' || b.type === 'fail') return a;
     return b;
   };
@@ -114,8 +118,8 @@ export function choices<T>(...ps: Parser<T>[]): Parser<T> {
 export function some<T>(p: Parser<T>): Parser<T[]> {
   /* An iterative implementation preferred over a recursive one like in Haskell.
    * Persistent data structures and recursion is expensive in JS. */
-  return (input) => {
-    let a: Reply<T> = p(input);
+  return (input, i) => {
+    let a: Reply<T> = p(input, i);
     if (a.type !== 'ok' && a.type !== 'epsilon') {
       return a;
     }
@@ -123,7 +127,7 @@ export function some<T>(p: Parser<T>): Parser<T[]> {
 
     while (a.type === 'ok' || a.type === 'epsilon') {
       output.push(a.value);
-      const x = p(a.input);
+      const x = p(input, a.index);
       if (x.type === 'fail') break;
       a = x;
     } 
@@ -132,7 +136,7 @@ export function some<T>(p: Parser<T>): Parser<T[]> {
     return {
       type: 'ok',
       value: output,
-      input: a.input,
+      index: a.index,
     }
   };
 }
@@ -146,13 +150,13 @@ export function anyChar(): Parser<string> {
 }
 
 export function skipSome<T>(p: Parser<T>): Parser<void> {
-  return (input) => {
-    let a: Reply<T> = p(input);
+  return (input, i) => {
+    let a: Reply<T> = p(input, i);
     if (a.type !== 'ok' && a.type !== 'epsilon') {
       return a;
     }
     while (a.type === 'ok' || a.type === 'epsilon') {
-      const x = p(a.input);
+      const x = p(input, a.index);
       if (x.type === 'fail') break;
       a = x;
     } 
@@ -161,7 +165,7 @@ export function skipSome<T>(p: Parser<T>): Parser<void> {
     return {
       type: 'epsilon',
       value: void 0,
-      input: a.input,
+      index: a.index,
     };
   }
 }
@@ -181,7 +185,7 @@ export function option<T>(p: Parser<T>, def?: T): Parser<T | void> {
 }
 
 export function lazy<T>(p: () => Parser<T>): Parser<T> {
-  return (input: string) => p()(input);
+  return (input, i) => p()(input, i);
 }
 
 export function void_<T>(p: Parser<T>): Parser<void> {
@@ -207,17 +211,21 @@ export function error(message: string): Parser<void> {
 }
 
 export function attempt<T>(p: Parser<T>): Parser<T> {
-  return (input) => {
-    const a = p(input);
+  return (input, i) => {
+    const a = p(input, i);
     if (a.type === 'error') return { type: 'fail' };
     return a;
   };
 }
 
 export function tryCatch<T>(p: Parser<T>, catcher: (message?: string) => Parser<T>): Parser<T> {
-  return (input) => {
-    const a = p(input);
-    if (a.type === 'error') return catcher(a.message)(input);
+  return (input, i) => {
+    const a = p(input, i);
+    if (a.type === 'error') return catcher(a.message)(input, i);
     return a;
   };
+}
+
+export function parse<T>(p: Parser<T>, input: string): Reply<T> {
+  return p(input, 0);
 }
