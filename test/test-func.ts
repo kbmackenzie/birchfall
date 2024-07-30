@@ -27,15 +27,12 @@ function analyze<T>(reply: Reply<T>, input: TestInput<T>): TestOutput<T> {
   };
 }
 
-export function test<T>(parser: Parser<T>, input: TestInput<T>[]): TestOutput<T> {
-  const [t, ...ts] = input;
-  return ts.reduce(
-    (last: TestOutput<T>, input: TestInput<T>): TestOutput<T> => {
-      if (last.type !== 'success') return last;
+export function test<T>(parser: Parser<T>, inputs: TestInput<T>[]): TestOutput<T>[] {
+  return inputs.map(
+    (input: TestInput<T>): TestOutput<T> => {
       const reply = parser(input.input);
       return analyze(reply, input);
-    },
-    analyze(parser(t.input), t),
+    }
   );
 }
 
@@ -53,9 +50,12 @@ export function logTest<T>(output: TestOutput<T>, stringify?: (t: T) => string):
     const snippet = output.input.input.length > 30
       ? output.input.input.slice(0, 30)
       : output.input.input;
+    const valueString = stringify
+      ? stringify(output.value)
+      : String(output.value);
     console.error(
       'test failed: ',
-      `parser result ${output.value} match expected result for input '${snippet}'!`
+      `parser result ${valueString} match expected result for input '${snippet}'!`
     );
   }
   else {

@@ -1,10 +1,10 @@
 import { TestInput } from '@test/test-func';
-import { evaluate, Expr } from '@test/calculator';
+import { evaluate, Expr, printExpr } from '@test/calculator';
 
-const calculatorTests: TestInput<Expr>[] = [
+export const calculatorTests: TestInput<Expr>[] = [
   {
     input: '1 + 1 + 1',
-    expected: (expr) => evaluate(expr) === 5,
+    expected: (expr) => evaluate(expr) === 3,
   },
   {
     input: '1 + 2 * 2',
