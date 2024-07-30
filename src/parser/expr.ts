@@ -43,7 +43,7 @@ function parseInfixR<T>(
   });
 }
 
-export function parseTerm<T>(
+function parseTerm<T>(
   term: Parser<T>,
   prefixes:  Parser<(a: T) => T>[],
   postfixes: Parser<(a: T) => T>[],
