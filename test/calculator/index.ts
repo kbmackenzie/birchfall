@@ -1,5 +1,5 @@
 import { between, char, choice, compose, fmap, lazy, Parser, pure, then } from '@/parser';
-import { integer, lexeme } from '@/parser/utils';
+import { integer, lexeme, whitespace } from '@/parser/utils';
 import { makeExpressionParser, OperatorTable, OperatorType } from '@/parser/expr';
 
 export type Operator = '+' | '-' | '*' | '/';
@@ -7,10 +7,10 @@ export type Expr =
   | { type: 'operation', operator: Operator, left: Expr, right: Expr }
   | { type: 'primitive', value: number };
 
-const symbol = compose(char, lexeme);
+const symbol = compose(char, lexeme(whitespace));
 
 const parseNumber: Parser<Expr> = fmap(
-  lexeme(integer),
+  lexeme(whitespace)(integer),
   (num) => ({ type: 'primitive', value: num })
 );
 
