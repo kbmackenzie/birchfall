@@ -1,14 +1,7 @@
-import { test, logTest } from './parser-test';
-import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar, skip, compose } from '@/parser'
-import { float } from '@/parser/utils';
-import { calculator, printExpr } from './parser/calculator';
+import { calculator, printExpr } from '@test/calculator';
+import { test, logTest } from './test-func';
 
-{
-  const input  = '1 + (2 + 3) * (4 + 2) + 3 / 4 * 2 / 5'
-  const result = test(calculator()(input));
-  logTest(result, printExpr);
-}
-
+/*
 {
   const input = '3.14';
   const result = test(
@@ -76,3 +69,4 @@ import { calculator, printExpr } from './parser/calculator';
   );
   logTest(result);
 }
+*/

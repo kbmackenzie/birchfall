@@ -46,9 +46,38 @@ export function calculator(): Parser<Expr> {
   return expr;
 }
 
+/* Print an expression and its subexpressions. */
 export function printExpr(expr: Expr): string {
   if (expr.type === 'primitive') return String(expr.value);
   const a = printExpr(expr.left);
   const b = printExpr(expr.right);
   return `(${a} ${expr.operator} ${b})`;
+}
+
+/* Compare two expressions recursively. */
+export function compare(a: Expr, b: Expr): boolean {
+  if (a.type === 'primitive' && b.type === 'primitive') {
+    return a.value === b.value;
+  }
+  if (a.type === 'operation' && b.type === 'operation') {
+    return a.operator === b.operator
+      && compare(a.left, b.left)
+      && compare(a.right, b.right);
+  }
+  return false;
+}
+
+/* Evaluate an expression, calculating its result. */
+export function evaluate(expr: Expr): number {
+  if (expr.type === 'primitive') {
+    return expr.value;
+  }
+  const left  = evaluate(expr.left);
+  const right = evaluate(expr.right);
+  switch (expr.operator) {
+    case '+': return left + right;
+    case '-': return left - right;
+    case '*': return left * right;
+    case '/': return left / right;
+  }
 }
