@@ -1,4 +1,4 @@
-import { Reply, isEmpty, isConsumed } from '@/reply';
+import { Reply } from '@/reply';
 
 export type Parser<T> = (input: string) => Reply<T>;
 
@@ -85,12 +85,8 @@ export function word(a: string): Parser<string> {
 export function choice<T>(pa: Parser<T>, pb: Parser<T>): Parser<T> {
   return (input) => {
     const a = pa(input);
-    if (isConsumed(a) || a.type === 'epsilon') return a;
-    if (a.type === 'fail') return pb(input);
-
-    const b = pb(input);
-    if (isEmpty(b)) return a;
-    return b;
+    if (a.type != 'fail') return a;
+    return pb(input);
   };
 }
 
