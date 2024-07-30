@@ -1,68 +1,49 @@
-import { between, bind, char, choice, compose, fmap, lazy, Parser, pure, some, then } from '@/parser';
-import { float, lexeme } from '@/parser/utils';
+import { between, char, choice, compose, fmap, lazy, Parser, pure, then } from '@/parser';
+import { integer, lexeme } from '@/parser/utils';
+import { makeExpressionParser, OperatorTable, OperatorType } from '@/parser/expr';
 
 export type Operator = '+' | '-' | '*' | '/';
 export type Expr =
   | { type: 'operation', operator: Operator, left: Expr, right: Expr }
   | { type: 'primitive', value: number };
 
-export type OperatorTable = Operator[][];
+const symbol = compose(char, lexeme);
 
-/* do
- *  symbol op
- *  b <- operand
- *  return $ \a -> { type: op, a: a, b: b }
- */
+const parseNumber: Parser<Expr> = fmap(
+  lexeme(integer),
+  (num) => ({ type: 'primitive', value: num })
+);
 
-export function expression(primitive: Parser<Expr>, operatorTable: OperatorTable): Parser<Expr> {
-  const symbol = compose(char, lexeme);
+const parseOperation = (operator: Operator) => then(
+  symbol(operator),
+  pure((left: Expr, right: Expr): Expr => ({
+    type: 'operation',
+    operator: operator,
+    left: left,
+    right: right,
+  }))
+);
 
-  const operationParser = (operand: Parser<Expr>, operators: Operator[]) => {
-    const operations = operators.map((operator) => then(
-      symbol(operator),
-      bind(operand, (b) => pure(
-        (a: Expr): Expr => ({
-          type: 'operation',
-          operator: operator,
-          left: a,
-          right: b,
-        }))
-      )
-    )).reduce(choice);
-
-    return bind(operand, (a) => choice(
-      fmap(
-        some(operations),
-        (ops) => ops.reduce((value, op) => op(value), a),
-      ),
-      pure(a)
-    ));
-  };
-
-  /* Forward-declaration because of function co-dependency. */
-  let term: Parser<Expr>;
-
-  const expr: Parser<Expr> = lazy(
-    () => operatorTable.reduce(operationParser, term)
-  );
-
-  term = choice(
-    between(symbol('('), symbol(')'), expr),
-    primitive,
-  );
-  return expr;
-}
+const operators: OperatorTable<Expr> = [
+  [
+    { type: OperatorType.InfixL, parse: parseOperation('*') },
+    { type: OperatorType.InfixL, parse: parseOperation('/') },
+  ],
+  [
+    { type: OperatorType.InfixL, parse: parseOperation('+') },
+    { type: OperatorType.InfixL, parse: parseOperation('-') },
+  ]
+];
 
 export function calculator(): Parser<Expr> {
-  const number = fmap(
-    lexeme(float),
-    (n): Expr => ({ type: 'primitive', value: n }),
+  /* Forward-declaration, because function co-dependency. */
+  let term: Parser<Expr>;
+  let expr = lazy(() => makeExpressionParser(term, operators));
+  term = choice(
+    between(symbol('('), symbol(')'), expr),
+    parseNumber
   );
-  const operators: OperatorTable = [
-    ['*', '/'],
-    ['+', '-'],
-  ];
-  return expression(number, operators);
+  return expr;
 }
 
 export function printExpr(expr: Expr): string {

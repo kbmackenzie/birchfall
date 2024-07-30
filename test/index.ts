@@ -1,13 +1,25 @@
 import { test, logTest } from './parser-test';
 import { Reply } from '@/reply';
-import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar, skip } from '@/parser'
-import { float } from '@/parser/utils';
+import { Parser, pure, bind, then, char, many, word, choice, choices, anyChar, skip, compose } from '@/parser'
+import { float, lexeme } from '@/parser/utils';
 import { calculator, Expr, printExpr } from './parser/calculator';
+import { parseTerm } from '@/parser/expr';
 
 {
-  const input  = '1 + (2 + 3) * (4 + 2) + 3 / 4'
+  const input  = '1 + (2 + 3) * (4 + 2) + 3 / 4 * 2 / 5'
   const result = test(calculator()(input));
   logTest(result, printExpr);
+}
+
+{
+  const symbol = compose(char, lexeme);
+  const parser = parseTerm(many(symbol('+')), [], []);
+  const input  = '+++ + + + ++ ++++ ++ + +';
+  const result = test(
+    parser(input),
+    result => result.length === 16
+  );
+  logTest(result)
 }
 
 {
