@@ -1,4 +1,4 @@
-import { Parser, char, compose, choices, then, pure, between, lazy, satisfy, void_, fmap, some } from '@/parser';
+import { Parser, char, compose, choices, then, pure, between, lazy, satisfy, fmap, some, skipSome } from '@/parser';
 import { lexeme } from '@/parser/utils';
 
 export type Instruction = '+' | '-' | '>' | '<' | ',' | '.';
@@ -8,7 +8,7 @@ export type Token =
   | { type: 'loop'       , tokens: Token[]    }
 
 const validCharacters = /[^\+\-\<\>\[\]\,\.]/;
-const spaces = void_(satisfy(x => validCharacters.test(x)));
+const spaces = skipSome(satisfy(x => validCharacters.test(x)));
 const symbol = compose(char, lexeme(spaces));
 
 const instruction = (ins: Instruction): Parser<Token> => then(

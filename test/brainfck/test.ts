@@ -10,4 +10,8 @@ export const brainfckTests: TestInput<Token[]>[] = [
     input: '>+++++[<++++++++>-]',
     expected: (token) => showTokens(token) === '>+++++[<++++++++>-]'
   },
+  {
+    input: '> +++   ++[<+abc++d++ef++  \n+g>  -]',
+    expected: (token) => showTokens(token) === '>+++++[<++++++++>-]'
+  },
 ];
