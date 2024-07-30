@@ -26,7 +26,7 @@ export function bind<T1, T2>(p: Parser<T1>, f: (t: T1) => Parser<T2>): Parser<T2
     if (a.type === 'ok') {
       const b = f(a.value)(input, a.index);
       if (b.type === 'fail' || b.type === 'error') {
-        return { type: 'error', message: b.message };
+        return { type: 'error', index: i, message: b.message };
       }
       return { type: 'ok', value: b.value, index: b.index };
     }
@@ -67,7 +67,7 @@ export function satisfy(predicate: (c: string) => boolean): Parser<string> {
   return (input, i) => {
     const head = input[i];
     if (head === undefined || !predicate(head)) {
-      return { type: 'fail' };
+      return { type: 'fail', index: i };
     }
     return {
       type: 'ok',
@@ -83,9 +83,9 @@ export function char(c: string): Parser<string> {
 
 export function word(a: string): Parser<string> {
   return (input, i) => {
-    if (input.length < a.length) return { type: 'fail' };
+    if (input.length < a.length) return { type: 'fail', index: i };
     const b = input.slice(i, a.length);
-    if (b !== a) return { type: 'fail' };
+    if (b !== a) return { type: 'fail', index: i };
     return {
       type: 'ok',
       value: b,
@@ -110,7 +110,7 @@ export function choices<T>(...ps: Parser<T>[]): Parser<T> {
   if (ps.length === 0) {
     /* Let combinator fail gracefully with zero arguments.
      * Avoid TypeError from .reduce(). */
-    return (_) => ({ type: 'fail' });
+    return (_, i) => ({ type: 'fail', index: i });
   }
   return ps.reduce((a, b) => choice(a, b));
 }
@@ -204,8 +204,9 @@ export function sepBy<T1, T2>(p: Parser<T1>, sep: Parser<T2>): Parser<T1[]> {
 }
 
 export function error(message: string): Parser<void> {
-  return (_) => ({
+  return (_, i) => ({
     type: 'error',
+    index: i,
     message: message,
   });
 }
@@ -213,7 +214,7 @@ export function error(message: string): Parser<void> {
 export function attempt<T>(p: Parser<T>): Parser<T> {
   return (input, i) => {
     const a = p(input, i);
-    if (a.type === 'error') return { type: 'fail' };
+    if (a.type === 'error') return { type: 'fail', index: i };
     return a;
   };
 }
