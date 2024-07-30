@@ -1,4 +1,4 @@
-import {Parser} from '@/parser';
+import { Parser, parse } from '@/parser';
 import { Reply } from '@/reply';
 
 export type TestInput<T> = {
@@ -30,7 +30,7 @@ function analyze<T>(reply: Reply<T>, input: TestInput<T>): TestOutput<T> {
 export function test<T>(parser: Parser<T>, inputs: TestInput<T>[]): TestOutput<T>[] {
   return inputs.map(
     (input: TestInput<T>): TestOutput<T> => {
-      const reply = parser(input.input);
+      const reply = parse(parser, input.input);
       return analyze(reply, input);
     }
   );

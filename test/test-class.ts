@@ -1,4 +1,4 @@
-import { Parser } from '@/parser';
+import { Parser, parse } from '@/parser';
 
 export type TestOutput<T> =
   | { type: 'success', value: T        }
@@ -17,7 +17,7 @@ export class Test<T> {
   }
 
   run(): TestOutput<T> {
-    const reply = this.parser(this.input);
+    const reply = parse(this.parser, this.input);
 
     if (reply.type === 'ok' || reply.type === 'epsilon') {
       const result = !this.predicate || this.predicate(reply.value);
