@@ -18,13 +18,12 @@ export type OperatorTable<T> = Operator<T>[][];
 function parseInfixL<T>(
   left: T,
   term: Parser<T>,
-  operators: Parser<(a: T, b: T) => T>[]
+  operations: Parser<(a: T, b: T) => T>
 ): Parser<T> {
-  const operation = choices(...operators);
-  return bind(operation, op => bind(term, right => {
+  return bind(operations, op => bind(term, right => {
     const expr = op(left, right);
     return choice(
-      parseInfixL(expr, term, operators),
+      parseInfixL(expr, term, operations),
       pure(expr),
     );
   }));
@@ -33,12 +32,11 @@ function parseInfixL<T>(
 function parseInfixR<T>(
   left: T,
   term: Parser<T>,
-  operators: Parser<(a: T, b: T) => T>[]
+  operations: Parser<(a: T, b: T) => T>
 ): Parser<T> {
-  const operation = choices(...operators);
-  return bind(operation, op => {
+  return bind(operations, op => {
     const rhs = bind(term, value => choice(
-      parseInfixR(value, term, operators),
+      parseInfixR(value, term, operations),
       pure(value),
     ));
     return fmap(rhs, right => op(left, right));
@@ -89,12 +87,12 @@ function splitOperators<T>(operatorList: Operator<T>[]): SplitOperators<T> {
 function parsePrecLevel<T>(primitive: Parser<T>, operatorList: Operator<T>[]) {
   const operators = splitOperators(operatorList);
   const term = parseTerm(primitive, operators.prefix, operators.postfix);
-  const infixR = (left: T) => parseInfixR(left, term, operators.infixR);
-  const infixL = (left: T) => parseInfixL(left, term, operators.infixR);
+  const infixR = choices(...operators.infixR);
+  const infixL = choices(...operators.infixL);
 
   return bind(term, x => choices(
-    infixR(x),
-    infixL(x),
+    parseInfixR(x, term, infixR),
+    parseInfixL(x, term, infixL),
     pure(x)
   ));
 }
