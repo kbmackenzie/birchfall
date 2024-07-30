@@ -48,6 +48,6 @@ export const whitespace: Parser<void> = skipSome(satisfy(isWhitespace));
 export const newline:    Parser<void> = void_(char('\n'));
 
 /* -- Miscellaneous -- */
-export function lexeme<T>(p: Parser<T>): Parser<T> {
-  return after(p, choice(whitespace, pure(void 0)));
-}
+export const lexeme = (space: Parser<void>) =>
+  <T>(p: Parser<T>): Parser<T> =>
+    after(p, choice(space, pure(void 0)));
