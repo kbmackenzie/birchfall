@@ -1,8 +1,8 @@
 export type Reply<T> =
-  | { type: 'ok'     , value: T, input: string }
-  | { type: 'epsilon', value: T, input: string }
-  | { type: 'fail'  }
-  | { type: 'error'  , message?: string }
+  | { type: 'ok'     , value: T, input: string }  /* Success after consuming input.   */
+  | { type: 'epsilon', value: T, input: string }  /* Success without consuming input. */
+  | { type: 'fail'   , message?: string }         /* Failure without consuming input. */
+  | { type: 'error'  , message?: string }         /* Failure *after* consuming input. */
 
 export function isEmpty<T>(r: Reply<T>): boolean {
   return r.type === 'epsilon' || r.type === 'fail';
