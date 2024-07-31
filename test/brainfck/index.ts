@@ -1,4 +1,4 @@
-import { Parser, char, compose, choices, then, pure, between, lazy, satisfy, fmap, some, skipSome } from '@/parser';
+import { Parser, char, compose, choices, then, pure, between, lazy, satisfy, fmap, some, skipSome, skip } from '@/parser';
 import { lexeme } from '@/parser/utils';
 
 export type Instruction = '+' | '-' | '>' | '<' | ',' | '.';
@@ -7,22 +7,36 @@ export type Token =
   | { type: 'instruction', value: Instruction }
   | { type: 'loop'       , tokens: Token[]    }
 
-const validCharacters = /[^\+\-\<\>\[\]\,\.]/;
-const spaces = skipSome(satisfy(x => validCharacters.test(x)));
-const symbol = compose(char, lexeme(spaces));
+const notValid = /[^\+\-\<\>\[\]\,\.]/;
+const comment  = satisfy(x => notValid.test(x));
+const comments = skipSome(comment);
+const symbol   = compose(char, lexeme(comments));
 
-const instruction = (ins: Instruction): Parser<Token> => then(
-  symbol(ins),
-  pure({ type: 'instruction', value: ins })
+const instructions: Instruction[] = ['+', '-', '<', '>', ',', '.'];
+
+const instruction = (instruction: Instruction): Parser<Token> => then(
+  symbol(instruction),
+  pure({ type: 'instruction', value: instruction })
 );
+
 const loop = (tokens: Parser<Token[]>): Parser<Token> => fmap(
-  between(symbol('['), symbol(']'), tokens),
+  between(
+    symbol('['),
+    symbol(']'),
+    tokens
+  ),
   (ts) => ({ type: 'loop', tokens: ts }),
 );
 
 export const brainfck: Parser<Token[]> = lazy(() => {
-  const instructions: Instruction[] = ['+', '-', '<', '>', ',', '.'];
-  return some(choices(...instructions.map(instruction), loop(brainfck)));
+  const token = choices(
+    ...instructions.map(instruction),
+    loop(brainfck)
+  );
+  return then(
+    skip(comment),
+    some(token)
+  );
 });
 
 export function showToken(token: Token): string {

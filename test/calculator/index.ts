@@ -1,4 +1,4 @@
-import { between, char, choice, compose, fmap, lazy, Parser, pure, then } from '@/parser';
+import { between, char, choice, compose, fmap, lazy, Parser, pure, skip, then } from '@/parser';
 import { integer, lexeme, whitespace } from '@/parser/utils';
 import { makeExpressionParser, OperatorTable, OperatorType } from '@/parser/expr';
 
@@ -43,7 +43,7 @@ export function calculator(): Parser<Expr> {
     between(symbol('('), symbol(')'), expr),
     parseNumber
   );
-  return expr;
+  return then(skip(whitespace), expr);
 }
 
 /* Stringify an expression and its subexpressions. */

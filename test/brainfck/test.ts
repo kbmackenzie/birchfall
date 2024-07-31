@@ -1,4 +1,4 @@
-import { parse } from '@/parser';
+import { parse } from '@/.';
 import { brainfck, showTokens } from '@test/brainfck';
 
 test('parse "+sd+sdfd++-sdfd---" as "++++----"', () => {

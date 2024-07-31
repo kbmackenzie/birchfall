@@ -1,4 +1,4 @@
-import { parse } from '@/parser';
+import { parse } from '@/.';
 import { calculator, evaluate } from '@test/calculator';
 
 test('parses "1 + 1 + 1" to equal 3', () => {
