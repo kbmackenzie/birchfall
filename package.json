@@ -8,8 +8,8 @@
     "build": "tsc -p tsconfig.build.json && tsc-alias -fp tsconfig.build.json",
     "all": "tsc -p tsconfig.json && tsc-alias -fp tsconfig.json",
     "clean": "rm -rf ./dist",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "jest": "jest"
+    "test": "jest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "keywords": [],
   "author": "kbmackenzie <kelly.a.betty@gmail.com>",
