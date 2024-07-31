@@ -192,6 +192,21 @@ export function void_<T>(p: Parser<T>): Parser<void> {
   return fmap(p, (_) => void 0);
 }
 
+export const endOfInput: Parser<void> = (input, i) => {
+  if (i >= input.length) {
+    const trimSnippet = input.length > 30;
+    const snippet = (trimSnippet)
+      ? input.slice(input.length - 30)
+      : input;
+    return {
+      type: 'error',
+      index: i,
+      message: `Expected end of input. got: ${snippet}${trimSnippet ? ' (...)' : ''}`
+    };
+  };
+  return { type: 'epsilon', value: void 0, index: i };
+}
+
 export function sepBy1<T1, T2>(p: Parser<T1>, sep: Parser<T2>): Parser<T1[]> {
   return bind(p, (a) => fmap(
     many(then(sep, p)),
@@ -225,23 +240,4 @@ export function tryCatch<T>(p: Parser<T>, catcher: (message?: string) => Parser<
     if (a.type === 'error') return catcher(a.message)(input, i);
     return a;
   };
-}
-
-export type ParserResult<T> =
-  | { type: 'success', value: T }
-  | { type: 'failure', index: number, message?: string }
-
-export function parse<T>(p: Parser<T>, input: string): ParserResult<T> {
-  const reply = p(input, 0);
-  if (reply.type === 'ok' || reply.type === 'epsilon') {
-    return {
-      type: 'success',
-      value: reply.value
-    };
-  }
-  return { 
-    type: 'failure',
-    index: reply.index,
-    message: reply.message
-  }
 }
