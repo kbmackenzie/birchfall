@@ -193,7 +193,7 @@ export function void_<T>(p: Parser<T>): Parser<void> {
 }
 
 export const endOfInput: Parser<void> = (input, i) => {
-  if (i >= input.length) {
+  if (i < input.length) {
     const trimSnippet = input.length > 30;
     const snippet = (trimSnippet)
       ? input.slice(input.length - 30)
