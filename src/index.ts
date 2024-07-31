@@ -8,7 +8,7 @@ export type ParserResult<T> =
 
 export type Config = {
   allowLeftovers?: boolean;
-  trim?: {
+  trim?: boolean | {
     where?: 'start' | 'end' | 'both',
     how?: RegExp | ((char: string) => boolean),
   },
@@ -20,9 +20,13 @@ export function parse<T>(parser: Parser<T>, input: string, config: Config = {}):
   const transforms: Transform[] = !config ? [] : [
     /* Trim input. */
     (input) => {
-      if (!config.trim) return input;
+      if (typeof config.trim === 'boolean') {
+        return config.trim ? input.trim() : input;
+      }
+      if (typeof config.trim === 'undefined') {
+        return input;
+      }
       const where = config.trim.where ?? 'both';
-
       if (where === 'both') return input.trim();
       return where === 'start' ? input.trimStart() : input.trimEnd();
     },
