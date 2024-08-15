@@ -1,14 +1,14 @@
-A little parser combinator library for TypeScript loosely based off of [this paper][1] and very heavily inspired by Haskell packages; primarily [Parsec][2], [Megaparsec][4] and [Parser-Combinators][3], which are awesome.
+A monadic parser combinator library for JavaScript and TypeScript, inspired by Haskell packages and designed to as **tiny** as it can be.
 
-It's designed for readability and productivity, whilst being **as tiny as possible**. It's **not** designed for speed. I highly suggest you look into other solutions if speed is your main priority!
+## Philosophy
+
+Mothwing is designed to be as **tiny** as it can, and is inspired by Haskell packages such as [parsec][2], [megaparsec][3] and [parser-combinators][4]. It's loosely based off of [this paper][1].
+
+It's designed to be as close to its Haskell inspirations as it can, exporting pure functions and avoiding class-like abstractions (such as chained method calls).
+
+I created this package after struggling to feel comfortable using popular parser combinator packages on NPM.
 
 [1]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf
 [2]: https://hackage.haskell.org/package/parsec
-[3]: https://hackage.haskell.org/package/parser-combinators
-[4]: https://hackage.haskell.org/package/megaparsec
-
-## Space Efficiency
-
-Mothwing **avoids string operations as much as it can**. Instead of slicing the input string, it keeps track of the parser's position with a numeric index.
-
-Because of this, space leaks often found in parser combinator libraries **do not affect** Mothwing.
+[3]: https://hackage.haskell.org/package/megaparsec
+[4]: https://hackage.haskell.org/package/parser-combinators
