@@ -8,8 +8,7 @@
     "preinstall": "npm run build",
     "build": "tsc -p tsconfig.build.json && tsc-alias -fp tsconfig.build.json",
     "clean": "rm -rf ./dist && rm -rf ./test/build",
-    "test": "jest",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "test": "jest"
   },
   "keywords": [],
   "author": "kbmackenzie <kelly.a.betty@gmail.com>",
