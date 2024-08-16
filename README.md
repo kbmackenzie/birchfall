@@ -1,4 +1,4 @@
-A little monadic parser combinator library for JavaScript and TypeScript, inspired by Haskell packages such as [parsec][2], [megaparsec][3] and [parser-combinators][4] and loosely based off of [this paper][1].
+A little monadic parser combinator library for TypeScript and JavaScript, inspired by Haskell packages such as [parsec][2], [megaparsec][3] and [parser-combinators][4] and loosely based off of [this paper][1].
 
 Birchfall is designed to be as close to its Haskell inspirations as it can, exporting pure functions and avoiding class-like abstractions (such as chained method calls).
 
