@@ -13,7 +13,7 @@
   "keywords": [],
   "author": "kbmackenzie <kelly.a.betty@gmail.com>",
   "license": "GPL-3.0-only",
-  "description": "",
+  "description": "A little monadic parser combinator library.",
   "files": [
     "dist/",
     "LICENSE",
